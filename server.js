@@ -34,6 +34,22 @@ io.on('connection', socket => {
     socket.to(roomId).emit('user-joined', { clientId, socketId: socket.id })
   })
 
+  // Handle text messages
+  socket.on('send-message', ({ message }) => {
+    const { roomId, clientId } = socket.data || {}
+    if (!roomId) return
+
+    const messageData = {
+      id: Date.now().toString(), // Simple message ID
+      message,
+      clientId,
+      timestamp: new Date().toISOString()
+    }
+
+    // Send message to all users in the room (including sender for confirmation)
+    io.to(roomId).emit('receive-message', messageData)
+  })
+
   socket.on('signal', ({ toClientId, data }) => {
     const { roomId, clientId } = socket.data || {}
     if (!roomId) return
